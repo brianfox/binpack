@@ -162,6 +162,7 @@ public class MaxRectsBinPack {
 	/// @param score1 [out] The primary placement score will be outputted here.
 	/// @param score2 [out] The secondary placement score will be outputted here. This isu sed to break ties.
 	/// @return This struct identifies where the rectangle would be placed if it were placed.
+	@SuppressWarnings("unused")
 	private Rect ScoreRect(int width, int height, FreeRectChoiceHeuristic method, outInt score1, outInt score2) {
 		Rect newNode = new Rect();
 		score1.val = Integer.MAX_VALUE;
@@ -190,6 +191,7 @@ public class MaxRectsBinPack {
 	/**
 	 * Places the given rectangle into the bin.
 	 */
+	@SuppressWarnings("unused")
 	private void PlaceRect(Rect node) {
 		
 		int numRectanglesToProcess = freeRectangles.size();

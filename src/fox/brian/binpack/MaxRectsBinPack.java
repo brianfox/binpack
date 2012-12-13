@@ -3,26 +3,26 @@ package com.fox.brian.binpack;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fox.brian.binpack.porthacks.outInt;
+import com.fox.brian.binpack.porthacks.outFloat;
 
 public class MaxRectsBinPack {
 	
-	private	int binWidth;
-	private	int binHeight;
+	private	float binWidth;
+	private	float binHeight;
 
 	private List<Rect> usedRectangles;
 	private List<Rect> freeRectangles;
 
 
-	private static int abs(int x) {
+	private static float abs(float x) {
 		return x < 0 ? -x : x;
 	}
 	
-	private static int min(int x, int y) {
+	private static float min(float x, float y) {
 		return x < y ? x : y;
 	}
 
-	private static int max(int x, int y) {
+	private static float max(float x, float y) {
 		return x < y ? y : x;
 	}
 	
@@ -107,15 +107,15 @@ public class MaxRectsBinPack {
 
 		while(rects.size() > 0)
 		{
-			int bestScore1 = Integer.MAX_VALUE;
-			int bestScore2 = Integer.MAX_VALUE;
-			int bestRectIndex = -1;
+			float bestScore1 = Float.MAX_VALUE;
+			float bestScore2 = Float.MAX_VALUE;
+			float bestRectIndex = -1;
 			Rect bestNode = new Rect();
 
 			for(int i = 0; i < rects.size(); ++i)
 			{
-				outInt score1 = new outInt();
-				outInt score2 = new outInt();
+				outFloat score1 = new outFloat();
+				outFloat score2 = new outFloat();
 				Rect newNode = ScoreRect(rects.get(i).width, rects.get(i).height, method, score1, score2);
 
 				if (score1.val < bestScore1 || (score1.val == bestScore1 && score2.val < bestScore2))
@@ -145,14 +145,15 @@ public class MaxRectsBinPack {
 	 * @param method
 	 * @return
 	 */
-	public Rect Insert(int width, int height, FreeRectChoiceHeuristic method) {
+	public Rect Insert(float width, float height, FreeRectChoiceHeuristic method) {
+		/*
 		System.out.printf("\nfreeRectangles BEFORE:\n");
 		for (Rect r : freeRectangles)
 			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
-
+		*/
 		Rect newNode = new Rect();
-		outInt score1 = new outInt(); // Unused in this function. We don't need to know the score after finding the position.
-		outInt score2 = new outInt();
+		outFloat score1 = new outFloat(); // Unused in this function. We don't need to know the score after finding the position.
+		outFloat score2 = new outFloat();
 		switch(method)
 		{
 			case RectBestShortSideFit: 
@@ -181,23 +182,27 @@ public class MaxRectsBinPack {
 		{
 			if (SplitFreeNode(freeRectangles.get(i), newNode))
 			{
-				Rect tmp = freeRectangles.get(i);
 				freeRectangles.remove(i);
 				--i;
 				--numRectanglesToProcess;
 			}
 		}
+		
+		/*
 		System.out.printf("freeRectangles BEFORE PRUNE:\n");
 		for (Rect r : freeRectangles)
 			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
+		*/
+		
 		PruneFreeList();
 		usedRectangles.add(newNode);
 
+		/*
 		System.out.printf("Score:  W: %d    H: %d    S1: %d    S2: %d\n", width, height, score1.val, score2.val);
 		System.out.printf("freeRectangles AFTER:\n");
 		for (Rect r : freeRectangles)
 			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
-
+		*/
 		
 		return newNode;
 
@@ -224,10 +229,10 @@ public class MaxRectsBinPack {
 	 * @param score2 [out] The secondary placement score will be outputted here. This isu sed to break ties.
 	 * @return Rect that identifies where the rectangle would be placed if it were placed.
 	 */
-	private Rect ScoreRect(int width, int height, FreeRectChoiceHeuristic method, outInt score1, outInt score2) {
+	private Rect ScoreRect(float width, float height, FreeRectChoiceHeuristic method, outFloat score1, outFloat score2) {
 		Rect newNode = new Rect();
-		score1.val = Integer.MAX_VALUE;
-		score2.val = Integer.MAX_VALUE;
+		score1.val = Float.MAX_VALUE;
+		score2.val = Float.MAX_VALUE;
 		switch(method) {
 			case RectBestShortSideFit:
 				newNode = FindPositionForNewNodeBestShortSideFit(width, height,score1, score2);
@@ -252,8 +257,8 @@ public class MaxRectsBinPack {
 		// Cannot fit the current rectangle.
 		if (newNode.height == 0)
 		{
-			score1.val = Integer.MAX_VALUE;
-			score2.val = Integer.MAX_VALUE;
+			score1.val = Float.MAX_VALUE;
+			score2.val = Float.MAX_VALUE;
 		}
 
 		return newNode;	
@@ -292,7 +297,7 @@ public class MaxRectsBinPack {
 	 * @param i2end
 	 * @return
 	 */
-	int CommonIntervalLength(int i1start, int i1end, int i2start, int i2end)
+	float CommonIntervalLength(float i1start, float i1end, float i2start, float i2end)
 	{
 		if (i1end < i2start || i2end < i1start)
 			return 0;
@@ -309,7 +314,7 @@ public class MaxRectsBinPack {
 	 * @param height
 	 * @return
 	 */
-	private int ContactPointScoreNode(int x, int y, int width, int height) { 
+	private int ContactPointScoreNode(float x, float y, float width, float height) { 
 		int score = 0;
 
 		if (x == 0 || x + width == binWidth)
@@ -339,18 +344,18 @@ public class MaxRectsBinPack {
 
 	
 	
-	private Rect FindPositionForNewNodeBottomLeft(int width, int height, outInt bestY, outInt bestX) {
+	private Rect FindPositionForNewNodeBottomLeft(float width, float height, outFloat bestY, outFloat bestX) {
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
 
-		bestY.val = Integer.MAX_VALUE;
+		bestY.val = Float.MAX_VALUE;
 
 		for(int i = 0; i < freeRectangles.size(); ++i)
 		{
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				int topSideY = freeRectangles.get(i).y + height;
+				float topSideY = freeRectangles.get(i).y + height;
 				if (topSideY < bestY.val || (topSideY == bestY.val && freeRectangles.get(i).x < bestX.val))
 				{
 					bestNode.x = freeRectangles.get(i).x;
@@ -363,7 +368,7 @@ public class MaxRectsBinPack {
 			}
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				int topSideY = freeRectangles.get(i).y + width;
+				float topSideY = freeRectangles.get(i).y + width;
 				if (topSideY < bestY.val || (topSideY == bestY.val && freeRectangles.get(i).x < bestX.val))
 				{
 					bestNode.x = freeRectangles.get(i).x;
@@ -380,21 +385,21 @@ public class MaxRectsBinPack {
 
 	
 	
-	private Rect FindPositionForNewNodeBestShortSideFit(int width, int height, outInt bestShortSideFit, outInt bestLongSideFit) { 
+	private Rect FindPositionForNewNodeBestShortSideFit(float width, float height, outFloat bestShortSideFit, outFloat bestLongSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
 
-		bestShortSideFit.val = Integer.MAX_VALUE;
+		bestShortSideFit.val = Float.MAX_VALUE;
 
 		for(int i = 0; i < freeRectangles.size(); ++i)
 		{
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				int leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				int leftoverVert = abs(freeRectangles.get(i).height - height);
-				int shortSideFit = min(leftoverHoriz, leftoverVert);
-				int longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
+				float leftoverVert = abs(freeRectangles.get(i).height - height);
+				float shortSideFit = min(leftoverHoriz, leftoverVert);
+				float longSideFit = max(leftoverHoriz, leftoverVert);
 
 				if (shortSideFit < bestShortSideFit.val || (shortSideFit == bestShortSideFit.val && longSideFit < bestLongSideFit.val))
 				{
@@ -409,10 +414,10 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				int flippedLeftoverHoriz = abs(freeRectangles.get(i).width - height);
-				int flippedLeftoverVert = abs(freeRectangles.get(i).height - width);
-				int flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
-				int flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
+				float flippedLeftoverHoriz = abs(freeRectangles.get(i).width - height);
+				float flippedLeftoverVert = abs(freeRectangles.get(i).height - width);
+				float flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
+				float flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
 
 				if (flippedShortSideFit < bestShortSideFit.val || (flippedShortSideFit == bestShortSideFit.val && flippedLongSideFit < bestLongSideFit.val))
 				{
@@ -438,21 +443,21 @@ public class MaxRectsBinPack {
 	 * @param bestLongSideFit
 	 * @return
 	 */
-	private Rect FindPositionForNewNodeBestLongSideFit(int width, int height, outInt bestShortSideFit, outInt bestLongSideFit) { 
+	private Rect FindPositionForNewNodeBestLongSideFit(float width, float height, outFloat bestShortSideFit, outFloat bestLongSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
 
-		bestLongSideFit.val = Integer.MAX_VALUE;
+		bestLongSideFit.val = Float.MAX_VALUE;
 
 		for(int i = 0; i < freeRectangles.size(); ++i)
 		{
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				int leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				int leftoverVert = abs(freeRectangles.get(i).height - height);
-				int shortSideFit = min(leftoverHoriz, leftoverVert);
-				int longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
+				float leftoverVert = abs(freeRectangles.get(i).height - height);
+				float shortSideFit = min(leftoverHoriz, leftoverVert);
+				float longSideFit = max(leftoverHoriz, leftoverVert);
 
 				if (longSideFit < bestLongSideFit.val || (longSideFit == bestLongSideFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -467,10 +472,10 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				int leftoverHoriz = abs(freeRectangles.get(i).width - height);
-				int leftoverVert = abs(freeRectangles.get(i).height - width);
-				int shortSideFit = min(leftoverHoriz, leftoverVert);
-				int longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = abs(freeRectangles.get(i).width - height);
+				float leftoverVert = abs(freeRectangles.get(i).height - width);
+				float shortSideFit = min(leftoverHoriz, leftoverVert);
+				float longSideFit = max(leftoverHoriz, leftoverVert);
 
 				if (longSideFit < bestLongSideFit.val || (longSideFit == bestLongSideFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -495,22 +500,22 @@ public class MaxRectsBinPack {
 	 * @param bestShortSideFit
 	 * @return
 	 */
-	private Rect FindPositionForNewNodeBestAreaFit(int width, int height, outInt bestAreaFit, outInt bestShortSideFit) { 
+	private Rect FindPositionForNewNodeBestAreaFit(float width, float height, outFloat bestAreaFit, outFloat bestShortSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
 
-		bestAreaFit.val = Integer.MAX_VALUE;
+		bestAreaFit.val = Float.MAX_VALUE;
 
 		for(int i = 0; i < freeRectangles.size(); ++i)
 		{
-			int areaFit = freeRectangles.get(i).width * freeRectangles.get(i).height - width * height;
+			float areaFit = freeRectangles.get(i).width * freeRectangles.get(i).height - width * height;
 
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				int leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				int leftoverVert = abs(freeRectangles.get(i).height - height);
-				int shortSideFit = min(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
+				float leftoverVert = abs(freeRectangles.get(i).height - height);
+				float shortSideFit = min(leftoverHoriz, leftoverVert);
 
 				if (areaFit < bestAreaFit.val || (areaFit == bestAreaFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -525,9 +530,9 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				int leftoverHoriz = abs(freeRectangles.get(i).width - height);
-				int leftoverVert = abs(freeRectangles.get(i).height - width);
-				int shortSideFit = min(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = abs(freeRectangles.get(i).width - height);
+				float leftoverVert = abs(freeRectangles.get(i).height - width);
+				float shortSideFit = min(leftoverHoriz, leftoverVert);
 
 				if (areaFit < bestAreaFit.val || (areaFit == bestAreaFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -551,7 +556,7 @@ public class MaxRectsBinPack {
 	 * @param bestContactScore
 	 * @return
 	 */
-	private Rect FindPositionForNewNodeContactPoint(int width, int height, outInt bestContactScore) { 
+	private Rect FindPositionForNewNodeContactPoint(float width, float height, outFloat bestContactScore) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
 
@@ -602,10 +607,11 @@ public class MaxRectsBinPack {
 			return false;
 		}
 		
+		/*
 		System.out.printf("\nBefore SPLIT:\n");
 		for (Rect r : freeRectangles)
 			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
-
+		*/
 
 		
 		if (usedNode.x < freeNode.x + freeNode.width && usedNode.x + usedNode.width > freeNode.x)
@@ -647,12 +653,11 @@ public class MaxRectsBinPack {
 				freeRectangles.add(newNode);
 			}
 		}
-		// System.out.printf("     Adding:  %d    %d    %d    %d\n", newNode.x, newNode.y, newNode.width, newNode.height);
-
+		/*
 		System.out.printf("\nAfter SPLIT:\n");
 		for (Rect r : freeRectangles)
 			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
-
+		*/
 		return true;
 
 	};

@@ -7,6 +7,13 @@ import com.fox.brian.binpack.porthacks.outInt;
 
 public class MaxRectsBinPack {
 	
+	private	int binWidth;
+	private	int binHeight;
+
+	private List<Rect> usedRectangles;
+	private List<Rect> freeRectangles;
+
+
 	private static int abs(int x) {
 		return x < 0 ? -x : x;
 	}
@@ -23,11 +30,7 @@ public class MaxRectsBinPack {
 	 * Instantiates a bin of size (0,0). Call Init to create a new bin.
 	 */
 	public MaxRectsBinPack() {
-		binWidth = 0;
-		binHeight = 0;
-
-		usedRectangles = new ArrayList<Rect>();;
-		freeRectangles = new ArrayList<Rect>();
+		this(0,0);
 	}
 
 	/**
@@ -36,8 +39,17 @@ public class MaxRectsBinPack {
 	 * @param height
 	 */
 	public MaxRectsBinPack(int width, int height) {
-		this();
-		
+		usedRectangles = new ArrayList<Rect>();;
+		freeRectangles = new ArrayList<Rect>();
+		init(width, height);
+	}
+
+	/** 
+	 * (Re)initializes the packer to an empty bin of width x height units. Call whenever you need to restart with a new bin.
+	 * @param width
+	 * @param height
+	 */
+	public void init(int width, int height) {
 		binWidth = width;
 		binHeight = height;
 
@@ -48,39 +60,84 @@ public class MaxRectsBinPack {
 		n.height = height;
 
 		usedRectangles.clear();
-
 		freeRectangles.clear();
-		freeRectangles.add(n);
+		freeRectangles.add(n);		
 	}
 
+	
 	/** 
-	 * (Re)initializes the packer to an empty bin of width x height units. Call whenever you need to restart with a new bin.
-	 * @param width
-	 * @param height
-	 */
-	public void Init(int width, int height) {}
-
-	/** 
-	 * Specifies the different heuristic rules that can be used when deciding where to place a new rectangle.
+	 * Specifies the different heuristic rules that can be used when 
+	 * deciding where to place a new rectangle.
 	 *
 	 */
 	public enum FreeRectChoiceHeuristic
 	{
-		RectBestShortSideFit, ///< -BSSF: Positions the rectangle against the short side of a free rectangle into which it fits the best.
-		RectBestLongSideFit, ///< -BLSF: Positions the rectangle against the long side of a free rectangle into which it fits the best.
-		RectBestAreaFit, ///< -BAF: Positions the rectangle into the smallest free rect into which it fits.
-		RectBottomLeftRule, ///< -BL: Does the Tetris placement.
-		RectContactPointRule ///< -CP: Choosest the placement where the rectangle touches other rects as much as possible.
+		/* Positions the rectangle against the short side of a free rectangle 
+		 * into which it fits the best. */
+		RectBestShortSideFit, 
+		
+		/* BLSF: Positions the rectangle against the long side of a free 
+		 * rectangle into which it fits the best. */
+		RectBestLongSideFit, 
+		
+		/* BAF: Positions the rectangle into the smallest free rect into which 
+		 * it fits. */
+		RectBestAreaFit,
+		
+		/* BL: Does the Tetris placement. */
+		RectBottomLeftRule,  
+		
+		/* CP: Choosest the placement where the rectangle touches other rects as 
+		 * much as possible. */
+		RectContactPointRule 
 	};
 
+	
 	/**
-	 * Inserts the given list of rectangles in an offline/batch mode, possibly rotated.
+	 * Inserts the given list of rectangles in an offline/batch mode, 
+	 * possibly rotated.
+     *
+	 * @param rects The list of rectangles to insert. This vector will be destroyed in the process.
+	 * @param dst [out] This list will contain the packed rectangles. The indices will not correspond to that of rects.
+	 * @param method The rectangle placement rule to use when packing.
+	 *
 	 */
-	/// @param rects The list of rectangles to insert. This vector will be destroyed in the process.
-	/// @param dst [out] This list will contain the packed rectangles. The indices will not correspond to that of rects.
-	/// @param method The rectangle placement rule to use when packing.
-	void Insert(List<Rect> rects, List<Rect> dst, FreeRectChoiceHeuristic method) {}
+	void Insert(List<Rect> rects, List<Rect> dst, FreeRectChoiceHeuristic method) {
+		dst.clear();
 
+		while(rects.size() > 0)
+		{
+			int bestScore1 = Integer.MAX_VALUE;
+			int bestScore2 = Integer.MAX_VALUE;
+			int bestRectIndex = -1;
+			Rect bestNode = new Rect();
+
+			for(int i = 0; i < rects.size(); ++i)
+			{
+				outInt score1 = new outInt();
+				outInt score2 = new outInt();
+				Rect newNode = ScoreRect(rects.get(i).width, rects.get(i).height, method, score1, score2);
+
+				if (score1.val < bestScore1 || (score1.val == bestScore1 && score2.val < bestScore2))
+				{
+					bestScore1 = score1.val;
+					bestScore2 = score2.val;
+					bestNode = newNode;
+					bestRectIndex = i;
+				}
+			}
+
+			if (bestRectIndex == -1)
+				return;
+
+			PlaceRect(bestNode);
+			rects.remove(bestRectIndex);
+		}	
+		
+	}
+
+	
+	
 	/** 
 	 * Inserts a single rectangle into the bin, possibly rotated.
 	 * @param width
@@ -88,7 +145,10 @@ public class MaxRectsBinPack {
 	 * @param method
 	 * @return
 	 */
-	Rect Insert(int width, int height, FreeRectChoiceHeuristic method) {
+	public Rect Insert(int width, int height, FreeRectChoiceHeuristic method) {
+		System.out.printf("\nfreeRectangles BEFORE:\n");
+		for (Rect r : freeRectangles)
+			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
 
 		Rect newNode = new Rect();
 		outInt score1 = new outInt(); // Unused in this function. We don't need to know the score after finding the position.
@@ -115,20 +175,30 @@ public class MaxRectsBinPack {
 		if (newNode.height == 0)
 			return newNode;
 
+		
 		int numRectanglesToProcess = freeRectangles.size();
 		for(int i = 0; i < numRectanglesToProcess; ++i)
 		{
 			if (SplitFreeNode(freeRectangles.get(i), newNode))
 			{
+				Rect tmp = freeRectangles.get(i);
 				freeRectangles.remove(i);
 				--i;
 				--numRectanglesToProcess;
 			}
 		}
-
+		System.out.printf("freeRectangles BEFORE PRUNE:\n");
+		for (Rect r : freeRectangles)
+			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
 		PruneFreeList();
-
 		usedRectangles.add(newNode);
+
+		System.out.printf("Score:  W: %d    H: %d    S1: %d    S2: %d\n", width, height, score1.val, score2.val);
+		System.out.printf("freeRectangles AFTER:\n");
+		for (Rect r : freeRectangles)
+			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
+
+		
 		return newNode;
 
 	}
@@ -141,41 +211,42 @@ public class MaxRectsBinPack {
 		long usedSurfaceArea = 0;
 		for(int i = 0; i < usedRectangles.size(); ++i)
 			usedSurfaceArea += usedRectangles.get(i).width * usedRectangles.get(i).height;
-
 		return (float)usedSurfaceArea / (binWidth * binHeight);
 	};
 
 	
-	private	int binWidth;
-	private	int binHeight;
-
-	private List<Rect> usedRectangles;
-	private List<Rect> freeRectangles;
-
 	/** Computes the placement score for placing the given rectangle with the given method.
 	 * 
 	 * @param width
 	 * @param height
 	 * @param method
-	 * @return
+	 * @param score1 [out] The primary placement score will be outputted here.
+	 * @param score2 [out] The secondary placement score will be outputted here. This isu sed to break ties.
+	 * @return Rect that identifies where the rectangle would be placed if it were placed.
 	 */
-	/// @param score1 [out] The primary placement score will be outputted here.
-	/// @param score2 [out] The secondary placement score will be outputted here. This isu sed to break ties.
-	/// @return This struct identifies where the rectangle would be placed if it were placed.
-	@SuppressWarnings("unused")
 	private Rect ScoreRect(int width, int height, FreeRectChoiceHeuristic method, outInt score1, outInt score2) {
 		Rect newNode = new Rect();
 		score1.val = Integer.MAX_VALUE;
 		score2.val = Integer.MAX_VALUE;
-		switch(method)
-		{
-		case RectBestShortSideFit: newNode = FindPositionForNewNodeBestShortSideFit(width, height, score1, score2); break;
-		case RectBottomLeftRule: newNode = FindPositionForNewNodeBottomLeft(width, height, score1, score2); break;
-		case RectContactPointRule: newNode = FindPositionForNewNodeContactPoint(width, height, score1); 
-			score1.val = -score1.val; // Reverse since we are minimizing, but for contact point score bigger is better.
-			break;
-		case RectBestLongSideFit: newNode = FindPositionForNewNodeBestLongSideFit(width, height, score2, score1); break;
-		case RectBestAreaFit: newNode = FindPositionForNewNodeBestAreaFit(width, height, score1, score2); break;
+		switch(method) {
+			case RectBestShortSideFit:
+				newNode = FindPositionForNewNodeBestShortSideFit(width, height,score1, score2);
+				break;
+			case RectBottomLeftRule:
+				newNode = FindPositionForNewNodeBottomLeft(width, height, score1,score2);
+				break;
+			case RectContactPointRule:
+				newNode = FindPositionForNewNodeContactPoint(width, height, score1);
+				/* Reverse since we are minimizing, but for contact point score bigger 
+				   is better. */
+				score1.val = -score1.val; 
+				break;
+			case RectBestLongSideFit:
+				newNode = FindPositionForNewNodeBestLongSideFit(width, height, score2, score1);
+				break;
+			case RectBestAreaFit:
+				newNode = FindPositionForNewNodeBestAreaFit(width, height, score1, score2);
+				break;
 		}
 
 		// Cannot fit the current rectangle.
@@ -191,9 +262,8 @@ public class MaxRectsBinPack {
 	/**
 	 * Places the given rectangle into the bin.
 	 */
-	@SuppressWarnings("unused")
 	private void PlaceRect(Rect node) {
-		
+
 		int numRectanglesToProcess = freeRectangles.size();
 		for(int i = 0; i < numRectanglesToProcess; ++i)
 		{
@@ -208,8 +278,7 @@ public class MaxRectsBinPack {
 		PruneFreeList();
 
 		usedRectangles.add(node);
-		//		dst.push_back(bestNode); ///\todo Refactor so that this compiles.		
-		
+		//		dst.push_back(bestNode); ///\todo Refactor so that this compiles.
 	};
 
 	
@@ -233,6 +302,7 @@ public class MaxRectsBinPack {
 	
 	/**
 	 * Computes the placement score for the -CP variant.
+	 * 
 	 * @param x
 	 * @param y
 	 * @param width
@@ -249,14 +319,26 @@ public class MaxRectsBinPack {
 
 		for(int i = 0; i < usedRectangles.size(); ++i)
 		{
-			if (usedRectangles.get(i).x == x + width || usedRectangles.get(i).x + usedRectangles.get(i).width == x)
-				score += CommonIntervalLength(usedRectangles.get(i).y, usedRectangles.get(i).y + usedRectangles.get(i).height, y, y + height);
-			if (usedRectangles.get(i).y == y + height || usedRectangles.get(i).y + usedRectangles.get(i).height == y)
-				score += CommonIntervalLength(usedRectangles.get(i).x, usedRectangles.get(i).x + usedRectangles.get(i).width, x, x + width);
+			if (usedRectangles.get(i).x == x + width 
+					|| usedRectangles.get(i).x + usedRectangles.get(i).width == x)
+				score += CommonIntervalLength(
+						usedRectangles.get(i).y, 
+						usedRectangles.get(i).y + usedRectangles.get(i).height, 
+						y, 
+						y + height);
+			if (usedRectangles.get(i).y == y + height 
+					|| usedRectangles.get(i).y + usedRectangles.get(i).height == y)
+				score += CommonIntervalLength(
+						usedRectangles.get(i).x, 
+						usedRectangles.get(i).x + usedRectangles.get(i).width, 
+						x, 
+						x + width);
 		}
 		return score;
 	};
 
+	
+	
 	private Rect FindPositionForNewNodeBottomLeft(int width, int height, outInt bestY, outInt bestX) {
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
@@ -296,6 +378,8 @@ public class MaxRectsBinPack {
 		return bestNode;
 	};
 
+	
+	
 	private Rect FindPositionForNewNodeBestShortSideFit(int width, int height, outInt bestShortSideFit, outInt bestLongSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
@@ -346,7 +430,14 @@ public class MaxRectsBinPack {
 	};
 
 	
-	
+	/**
+	 * 
+	 * @param width
+	 * @param height
+	 * @param bestShortSideFit
+	 * @param bestLongSideFit
+	 * @return
+	 */
 	private Rect FindPositionForNewNodeBestLongSideFit(int width, int height, outInt bestShortSideFit, outInt bestLongSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
@@ -396,7 +487,14 @@ public class MaxRectsBinPack {
 	};
 	
 	
-	
+	/**
+	 * 
+	 * @param width
+	 * @param height
+	 * @param bestAreaFit
+	 * @param bestShortSideFit
+	 * @return
+	 */
 	private Rect FindPositionForNewNodeBestAreaFit(int width, int height, outInt bestAreaFit, outInt bestShortSideFit) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
@@ -446,6 +544,13 @@ public class MaxRectsBinPack {
 	};
 	
 	
+	/**
+	 * 
+	 * @param width
+	 * @param height
+	 * @param bestContactScore
+	 * @return
+	 */
 	private Rect FindPositionForNewNodeContactPoint(int width, int height, outInt bestContactScore) { 
 		Rect bestNode = new Rect();
 		// memset(&bestNode, 0, sizeof(Rect));
@@ -483,6 +588,8 @@ public class MaxRectsBinPack {
 		return bestNode;
 	};
 
+	
+	
 	/**
 	 * @param freeNode
 	 * @param usedNode
@@ -491,15 +598,22 @@ public class MaxRectsBinPack {
 	private boolean SplitFreeNode(Rect freeNode, Rect usedNode) { 
 		// Test with SAT if the rectangles even intersect.
 		if (usedNode.x >= freeNode.x + freeNode.width || usedNode.x + usedNode.width <= freeNode.x ||
-			usedNode.y >= freeNode.y + freeNode.height || usedNode.y + usedNode.height <= freeNode.y)
+			usedNode.y >= freeNode.y + freeNode.height || usedNode.y + usedNode.height <= freeNode.y) {
 			return false;
+		}
+		
+		System.out.printf("\nBefore SPLIT:\n");
+		for (Rect r : freeRectangles)
+			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
 
+
+		
 		if (usedNode.x < freeNode.x + freeNode.width && usedNode.x + usedNode.width > freeNode.x)
 		{
 			// New node at the top side of the used node.
 			if (usedNode.y > freeNode.y && usedNode.y < freeNode.y + freeNode.height)
 			{
-				Rect newNode = freeNode;
+				Rect newNode = new Rect(freeNode);
 				newNode.height = usedNode.y - newNode.y;
 				freeRectangles.add(newNode);
 			}
@@ -507,7 +621,7 @@ public class MaxRectsBinPack {
 			// New node at the bottom side of the used node.
 			if (usedNode.y + usedNode.height < freeNode.y + freeNode.height)
 			{
-				Rect newNode = freeNode;
+				Rect newNode = new Rect(freeNode);
 				newNode.y = usedNode.y + usedNode.height;
 				newNode.height = freeNode.y + freeNode.height - (usedNode.y + usedNode.height);
 				freeRectangles.add(newNode);
@@ -519,7 +633,7 @@ public class MaxRectsBinPack {
 			// New node at the left side of the used node.
 			if (usedNode.x > freeNode.x && usedNode.x < freeNode.x + freeNode.width)
 			{
-				Rect newNode = freeNode;
+				Rect newNode = new Rect(freeNode);
 				newNode.width = usedNode.x - newNode.x;
 				freeRectangles.add(newNode);
 			}
@@ -527,21 +641,42 @@ public class MaxRectsBinPack {
 			// New node at the right side of the used node.
 			if (usedNode.x + usedNode.width < freeNode.x + freeNode.width)
 			{
-				Rect newNode = freeNode;
+				Rect newNode = new Rect(freeNode);
 				newNode.x = usedNode.x + usedNode.width;
 				newNode.width = freeNode.x + freeNode.width - (usedNode.x + usedNode.width);
 				freeRectangles.add(newNode);
 			}
 		}
+		// System.out.printf("     Adding:  %d    %d    %d    %d\n", newNode.x, newNode.y, newNode.width, newNode.height);
+
+		System.out.printf("\nAfter SPLIT:\n");
+		for (Rect r : freeRectangles)
+			System.out.printf("    Free Rect:  X: %d    Y: %d     H: %d     W: %d\n", r.x, r.y, r.height, r.width);
 
 		return true;
 
 	};
 
+	
 	/** 
 	 * Goes through the free rectangle list and removes any redundant entries.
 	 */
 	private void PruneFreeList() {
-		// [NOT PORTED]
+
+		for(int i = 0; i < freeRectangles.size(); ++i)
+			for(int j = i+1; j < freeRectangles.size(); ++j) 
+			{
+				if (Rect.isContainedIn(freeRectangles.get(i), freeRectangles.get(j)))
+				{
+					freeRectangles.remove(i);
+					--i;
+					break;
+				}
+				if (Rect.isContainedIn(freeRectangles.get(j), freeRectangles.get(i)))
+				{
+					freeRectangles.remove(j);
+					--j;
+				}
+			}
 	}
 }

@@ -10,13 +10,20 @@ public class Rect {
 	};
 	*/
 	
-	int x;
-	int y;
-	int width;
-	int height;
+	public int x;
+	public int y;
+	public int width;
+	public int height;
 	
 	public Rect() {
 		x = y = width = height = 0;
+	}
+
+	public Rect(Rect n) {
+		this.x = n.x;
+		this.y = n.y;
+		this.width = n.width;
+		this.height = n.height;
 	}
 
 	/** Performs a lexicographic compare on (rect short side, rect long side).
@@ -46,8 +53,10 @@ public class Rect {
 	 * @param b
 	 * @return
 	 */
-	boolean isContainedIn(Rect a, Rect b) { 
-		return true; 
+	static boolean isContainedIn(Rect a, Rect b) { 
+		return a.x >= b.x && a.y >= b.y 
+				&& a.x+a.width <= b.x+b.width 
+				&& a.y+a.height <= b.y+b.height;	
 	}
 
 }

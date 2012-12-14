@@ -14,18 +14,7 @@ public class MaxRectsBinPack {
 	private List<Rect> freeRectangles;
 
 
-	private static float abs(float x) {
-		return x < 0 ? -x : x;
-	}
-	
-	private static float min(float x, float y) {
-		return x < y ? x : y;
-	}
 
-	private static float max(float x, float y) {
-		return x < y ? y : x;
-	}
-	
 	/**
 	 * Instantiates a bin of size (0,0). Call Init to create a new bin.
 	 */
@@ -35,29 +24,29 @@ public class MaxRectsBinPack {
 
 	/**
 	 * Instantiates a bin of the given size.
-	 * @param width
-	 * @param height
+	 * @param binWidth2
+	 * @param binHeight2
 	 */
-	public MaxRectsBinPack(int width, int height) {
+	public MaxRectsBinPack(float binWidth2, float binHeight2) {
 		usedRectangles = new ArrayList<Rect>();;
 		freeRectangles = new ArrayList<Rect>();
-		init(width, height);
+		init(binWidth2, binHeight2);
 	}
 
 	/** 
 	 * (Re)initializes the packer to an empty bin of width x height units. Call whenever you need to restart with a new bin.
-	 * @param width
-	 * @param height
+	 * @param binWidth2
+	 * @param binHeight2
 	 */
-	public void init(int width, int height) {
-		binWidth = width;
-		binHeight = height;
+	public void init(float binWidth2, float binHeight2) {
+		binWidth = binWidth2;
+		binHeight = binHeight2;
 
 		Rect n = new Rect();
 		n.x = 0;
 		n.y = 0;
-		n.width = width;
-		n.height = height;
+		n.width = binWidth2;
+		n.height = binHeight2;
 
 		usedRectangles.clear();
 		freeRectangles.clear();
@@ -216,7 +205,7 @@ public class MaxRectsBinPack {
 		long usedSurfaceArea = 0;
 		for(int i = 0; i < usedRectangles.size(); ++i)
 			usedSurfaceArea += usedRectangles.get(i).width * usedRectangles.get(i).height;
-		return (float)usedSurfaceArea / (binWidth * binHeight);
+		return usedSurfaceArea / (binWidth * binHeight);
 	};
 
 	
@@ -301,7 +290,7 @@ public class MaxRectsBinPack {
 	{
 		if (i1end < i2start || i2end < i1start)
 			return 0;
-		return min(i1end, i2end) - max(i1start, i2start);
+		return Helper.min(i1end, i2end) - Helper.max(i1start, i2start);
 	}
 	
 	
@@ -396,10 +385,10 @@ public class MaxRectsBinPack {
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				float leftoverVert = abs(freeRectangles.get(i).height - height);
-				float shortSideFit = min(leftoverHoriz, leftoverVert);
-				float longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = Helper.abs(freeRectangles.get(i).width - width);
+				float leftoverVert = Helper.abs(freeRectangles.get(i).height - height);
+				float shortSideFit = Helper.min(leftoverHoriz, leftoverVert);
+				float longSideFit = Helper.max(leftoverHoriz, leftoverVert);
 
 				if (shortSideFit < bestShortSideFit.val || (shortSideFit == bestShortSideFit.val && longSideFit < bestLongSideFit.val))
 				{
@@ -414,10 +403,10 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				float flippedLeftoverHoriz = abs(freeRectangles.get(i).width - height);
-				float flippedLeftoverVert = abs(freeRectangles.get(i).height - width);
-				float flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
-				float flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
+				float flippedLeftoverHoriz = Helper.abs(freeRectangles.get(i).width - height);
+				float flippedLeftoverVert = Helper.abs(freeRectangles.get(i).height - width);
+				float flippedShortSideFit = Helper.min(flippedLeftoverHoriz, flippedLeftoverVert);
+				float flippedLongSideFit = Helper.max(flippedLeftoverHoriz, flippedLeftoverVert);
 
 				if (flippedShortSideFit < bestShortSideFit.val || (flippedShortSideFit == bestShortSideFit.val && flippedLongSideFit < bestLongSideFit.val))
 				{
@@ -454,10 +443,10 @@ public class MaxRectsBinPack {
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				float leftoverVert = abs(freeRectangles.get(i).height - height);
-				float shortSideFit = min(leftoverHoriz, leftoverVert);
-				float longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = Helper.abs(freeRectangles.get(i).width - width);
+				float leftoverVert = Helper.abs(freeRectangles.get(i).height - height);
+				float shortSideFit = Helper.min(leftoverHoriz, leftoverVert);
+				float longSideFit = Helper.max(leftoverHoriz, leftoverVert);
 
 				if (longSideFit < bestLongSideFit.val || (longSideFit == bestLongSideFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -472,10 +461,10 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				float leftoverHoriz = abs(freeRectangles.get(i).width - height);
-				float leftoverVert = abs(freeRectangles.get(i).height - width);
-				float shortSideFit = min(leftoverHoriz, leftoverVert);
-				float longSideFit = max(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = Helper.abs(freeRectangles.get(i).width - height);
+				float leftoverVert = Helper.abs(freeRectangles.get(i).height - width);
+				float shortSideFit = Helper.min(leftoverHoriz, leftoverVert);
+				float longSideFit = Helper.max(leftoverHoriz, leftoverVert);
 
 				if (longSideFit < bestLongSideFit.val || (longSideFit == bestLongSideFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -513,9 +502,9 @@ public class MaxRectsBinPack {
 			// Try to place the rectangle in upright (non-flipped) orientation.
 			if (freeRectangles.get(i).width >= width && freeRectangles.get(i).height >= height)
 			{
-				float leftoverHoriz = abs(freeRectangles.get(i).width - width);
-				float leftoverVert = abs(freeRectangles.get(i).height - height);
-				float shortSideFit = min(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = Helper.abs(freeRectangles.get(i).width - width);
+				float leftoverVert = Helper.abs(freeRectangles.get(i).height - height);
+				float shortSideFit = Helper.min(leftoverHoriz, leftoverVert);
 
 				if (areaFit < bestAreaFit.val || (areaFit == bestAreaFit.val && shortSideFit < bestShortSideFit.val))
 				{
@@ -530,9 +519,9 @@ public class MaxRectsBinPack {
 
 			if (freeRectangles.get(i).width >= height && freeRectangles.get(i).height >= width)
 			{
-				float leftoverHoriz = abs(freeRectangles.get(i).width - height);
-				float leftoverVert = abs(freeRectangles.get(i).height - width);
-				float shortSideFit = min(leftoverHoriz, leftoverVert);
+				float leftoverHoriz = Helper.abs(freeRectangles.get(i).width - height);
+				float leftoverVert = Helper.abs(freeRectangles.get(i).height - width);
+				float shortSideFit = Helper.min(leftoverHoriz, leftoverVert);
 
 				if (areaFit < bestAreaFit.val || (areaFit == bestAreaFit.val && shortSideFit < bestShortSideFit.val))
 				{

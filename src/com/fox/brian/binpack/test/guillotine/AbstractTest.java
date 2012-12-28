@@ -1,7 +1,7 @@
 package com.fox.brian.binpack.test.guillotine;
 
-import com.fox.brian.binpack.GuillotineBinPack;
-import com.fox.brian.binpack.Rect;
+import com.fox.brian.binpack.algorithms.Guillotine;
+import com.fox.brian.binpack.util.Rect;
 
 public class AbstractTest {
 
@@ -13,15 +13,15 @@ public class AbstractTest {
 			float binWidth, 
 			float binHeight, 
 			float[] vals, 
-			GuillotineBinPack.FreeRectChoiceHeuristic heuristic, 
-			GuillotineBinPack.GuillotineSplitHeuristic splitMethod, 
+			Guillotine.FreeRectChoiceHeuristic heuristic, 
+			Guillotine.GuillotineSplitHeuristic splitMethod, 
 			boolean output
 			) {
 		
 		// Create a bin to pack to, use the bin size from command line.
 		if (output) 
 			System.out.printf("Initializing bin to size %.2fx%.2f.\n", binWidth, binHeight);
-		GuillotineBinPack bin = new GuillotineBinPack(binWidth, binHeight);
+		Guillotine bin = new Guillotine(binWidth, binHeight);
 
 		// Pack each rectangle (w_i, h_i) the user inputted on the command line.
 		for(int i = 0; i < vals.length; i += 2)
@@ -37,13 +37,13 @@ public class AbstractTest {
 
 			// Test success or failure.
 			if (output) 
-				if (packedRect.height > 0)
+				if (packedRect.height() > 0)
 					System.out.printf(
 							"Packed to (x,y)=(%.2f,%.2f), (w,h)=(%.2f,%.2f). Free space left: %.2f%%\n", 
-							packedRect.x, 
-							packedRect.y, 
-							packedRect.width, 
-							packedRect.height, 
+							packedRect.x(), 
+							packedRect.y(), 
+							packedRect.width(), 
+							packedRect.height(), 
 							100.f - bin.occupancy()*100.f
 					);
 				else

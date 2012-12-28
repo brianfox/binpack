@@ -1,12 +1,14 @@
-package com.fox.brian.binpack;
+package com.fox.brian.binpack.algorithms;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 import com.fox.brian.binpack.porthacks.outInt;
+import com.fox.brian.binpack.util.Helper;
+import com.fox.brian.binpack.util.Rect;
 
-public class GuillotineBinPack {
+public class Guillotine {
 
 	
 	private float binWidth;
@@ -32,13 +34,13 @@ public class GuillotineBinPack {
 	
 	
 	
-	public GuillotineBinPack() {
+	public Guillotine() {
 		usedRectangles = new ArrayList<Rect>();
 		freeRectangles = new ArrayList<Rect>();
 //		disjointRects = new DisjointRectCollection();
 	}
 	
-	public GuillotineBinPack(float binWidth2, float binHeight2) {
+	public Guillotine(float binWidth2, float binHeight2) {
 		this();
 		
 		binWidth = binWidth2;
@@ -53,11 +55,12 @@ public class GuillotineBinPack {
 		usedRectangles.clear();
 
 		// We start with a single big free rectangle that spans the whole bin.
-		Rect n = new Rect();
-		n.x = 0;
-		n.y = 0;
-		n.width = binWidth2;
-		n.height = binHeight2;
+		Rect n = new Rect(
+			0,
+			0,
+			binWidth2,
+			binHeight2
+		);
 
 		freeRectangles.clear();
 		freeRectangles.add(n);
@@ -93,8 +96,9 @@ public class GuillotineBinPack {
 		SplitShorterAxis, ///< -SAS
 		SplitLongerAxis ///< -LAS
 	};
+
 	
-	
+
 	/** 
 	 * Inserts a single rectangle into the bin. The packer might rotate the 
 	 * rectangle, in which case the returned struct will have the width and 
@@ -127,7 +131,7 @@ public class GuillotineBinPack {
 		int freeNodeIndex = out.val;
 
 		// Abort if we didn't have enough space in the bin.
-		if (newRect.height == 0)
+		if (newRect.height() == 0)
 			return newRect;
 
 		// Remove the space that was just consumed by the new rectangle.
@@ -178,11 +182,18 @@ public class GuillotineBinPack {
 
 			for(int i = 0; i < freeRectangles.size(); ++i)
 			{
+				float iw = freeRectangles.get(i).width();
+				float ih = freeRectangles.get(i).height();
+				float rects_iw = rects.get(i).width();
+				float rects_ih = rects.get(i).height();
+				
 				for(int j = 0; j < rects.size(); ++j)
 				{
+					float rects_jw = rects.get(j).width();
+					float rects_jh = rects.get(j).height();
+					
 					// If this rectangle is a perfect match, we pick it instantly.
-					if (rects.get(j).width == freeRectangles.get(i).width 
-							&& rects.get(j).height == freeRectangles.get(i).height)
+					if (rects_jw == iw && rects_jh == ih)
 					{
 						bestFreeRect = i;
 						bestRect = j;
@@ -192,8 +203,7 @@ public class GuillotineBinPack {
 						break;
 					}
 					// If flipping this rectangle is a perfect match, pick that then.
-					else if (rects.get(j).height == freeRectangles.get(i).width 
-							&& rects.get(j).width == freeRectangles.get(i).height)
+					else if (rects_jh == iw && rects_jw == ih)
 					{
 						bestFreeRect = i;
 						bestRect = j;
@@ -203,11 +213,9 @@ public class GuillotineBinPack {
 						break;
 					}
 					// Try if we can fit the rectangle upright.
-					else if (rects.get(j).width <= freeRectangles.get(i).width 
-							&& rects.get(j).height <= freeRectangles.get(i).height)
+					else if (rects_jw <= iw && rects_jh <= ih)
 					{
-						float score = ScoreByHeuristic(rects.get(i).width, rects.get(i).height, 
-								freeRectangles.get(i), rectChoice);
+						float score = ScoreByHeuristic(rects_iw, rects_ih,freeRectangles.get(i), rectChoice);
 						if (score < bestScore)
 						{
 							bestFreeRect = i;
@@ -217,12 +225,11 @@ public class GuillotineBinPack {
 						}
 					}
 					// If not, then perhaps flipping sideways will make it fit?
-					else if (rects.get(i).height <= freeRectangles.get(i).width 
-							&& rects.get(i).width <= freeRectangles.get(i).height)
+					else if (rects_ih <= iw && rects_iw <= ih)
 					{
 						float score = ScoreByHeuristic(
-								rects.get(i).height, 
-								rects.get(i).width, 
+								rects_ih, 
+								rects_iw, 
 								freeRectangles.get(i), 
 								rectChoice
 								);
@@ -241,18 +248,16 @@ public class GuillotineBinPack {
 			if (bestScore == Integer.MAX_VALUE)
 				return;
 
+			
+			float newh = bestFlipped ? rects.get(bestRect).width() : rects.get(bestRect).height();
+			float neww = bestFlipped ? rects.get(bestRect).height() : rects.get(bestRect).width();
 			// Otherwise, we're good to go and do the actual packing.
-			Rect newNode = new Rect();
-			newNode.x = freeRectangles.get(bestFreeRect).x;
-			newNode.y = freeRectangles.get(bestFreeRect).y;
-			newNode.width = rects.get(bestRect).width;
-			newNode.height = rects.get(bestRect).height;
-
-			if (bestFlipped) {
-				float tmp = newNode.height;
-				newNode.height = newNode.width;
-				newNode.width = tmp;
-			}
+			Rect newNode = new Rect(
+				freeRectangles.get(bestFreeRect).x(),
+				freeRectangles.get(bestFreeRect).y(),
+				neww,
+				newh
+			);
 
 			// Remove the free space we lost in the bin.
 			splitFreeRectByHeuristic(freeRectangles.get(bestFreeRect), newNode, splitMethod);
@@ -294,7 +299,7 @@ public class GuillotineBinPack {
 		///      of looping through the list of packed rectangles here.
 		long usedSurfaceArea = 0;
 		for(int i = 0; i < usedRectangles.size(); ++i)
-			usedSurfaceArea += usedRectangles.get(i).width * usedRectangles.get(i).height;
+			usedSurfaceArea += usedRectangles.get(i).width() * usedRectangles.get(i).height();
 		return usedSurfaceArea / (binWidth * binHeight);
 	};
 
@@ -341,48 +346,53 @@ public class GuillotineBinPack {
 		// me merged into one.  Note that we miss any opportunities to merge 
 		// three rectangles into one. (should call this function again to 
 		// detect that)
-		for(int i = 0; i < freeRectangles.size(); ++i)
+		for(int i = 0; i < freeRectangles.size(); ++i) {
+			float iw = freeRectangles.get(i).width();
+			float ih = freeRectangles.get(i).height();
+			float ix = freeRectangles.get(i).x();
+			float iy = freeRectangles.get(i).y();
+		
 			for(int j = i+1; j < freeRectangles.size(); ++j)
 			{
-				if (freeRectangles.get(i).width == freeRectangles.get(j).width 
-						&& freeRectangles.get(i).x == freeRectangles.get(j).x)
+				float jw = freeRectangles.get(j).width();
+				float jh = freeRectangles.get(j).height();
+				float jx = freeRectangles.get(j).x();
+				float jy = freeRectangles.get(j).y();
+
+				if (iw == jw && ix == jx)
 				{
-					if (freeRectangles.get(i).y == 
-							freeRectangles.get(j).y + freeRectangles.get(j).height)
+					if (iy == jy + jh)
 					{
-						freeRectangles.get(i).y -= freeRectangles.get(j).height;
-						freeRectangles.get(i).height += freeRectangles.get(j).height;
+						iy -= jh;
+						ih += jh;
 						freeRectangles.remove(j);
 						--j;
 					}
-					else if (freeRectangles.get(i).y + freeRectangles.get(i).height 
-							== freeRectangles.get(j).y)
+					else if (iy + ih == jy)
 					{
-						freeRectangles.get(i).height += freeRectangles.get(j).height;
+						ih += jh;
 						freeRectangles.remove(j);
 						--j;
 					}
 				}
-				else if (freeRectangles.get(i).height == freeRectangles.get(j).height 
-						&& freeRectangles.get(i).y == freeRectangles.get(j).y)
+				else if (ih == jh && iy == jy)
 				{
-					if (freeRectangles.get(i).x == 
-							freeRectangles.get(j).x + freeRectangles.get(j).width)
+					if (ix == jx + jw)
 					{
-						freeRectangles.get(i).x -= freeRectangles.get(j).width;
-						freeRectangles.get(i).width += freeRectangles.get(j).width;
+						ix -= jw;
+						iw += jw;
 						freeRectangles.remove(j);
 						--j;
 					}
-					else if (freeRectangles.get(i).x + freeRectangles.get(i).width 
-							== freeRectangles.get(j).x)
+					else if (ix + iw == jx)
 					{
-						freeRectangles.get(i).width += freeRectangles.get(j).width;
+						iw += jw;
 						freeRectangles.remove(j);
 						--j;
 					}
 				}
 			}
+		}
 		/* 
 		[NOT PORTED]
 
@@ -419,7 +429,7 @@ public class GuillotineBinPack {
 	 */
 	// 	Rect FindPositionForNewNode(int width, int height, FreeRectChoiceHeuristic rectChoice, int *nodeIndex) {}
 	Rect FindPositionForNewNode(float width, float height, FreeRectChoiceHeuristic rectChoice, outInt nodeIndex) { 
-		Rect bestNode = new Rect();
+		Rect bestNode = new Rect(width, height);
 		
 		// [NOT PORTED] memset(&bestNode, 0, sizeof(Rect));
 
@@ -428,57 +438,50 @@ public class GuillotineBinPack {
 		/// Try each free rectangle to find the best one for placement.
 		for(int i = 0; i < freeRectangles.size(); ++i)
 		{
+			float iw = freeRectangles.get(i).width();
+			float ih = freeRectangles.get(i).height();
+			float ix = freeRectangles.get(i).x();
+			float iy = freeRectangles.get(i).y();
+			
 			// If this is a perfect fit upright, choose it immediately.
-			if (width == freeRectangles.get(i).width && height == freeRectangles.get(i).height)
+			if (width == iw && height == ih)
 			{
-				bestNode.x = freeRectangles.get(i).x;
-				bestNode.y = freeRectangles.get(i).y;
-				bestNode.width = width;
-				bestNode.height = height;
+				bestNode = new Rect(ix, iy, width, height);
 				bestScore = Integer.MIN_VALUE;
 				nodeIndex.val = i;
 				// [NOT PORTED] debug_assert(disjointRects.disjoint(bestNode));
 				break;
 			}
 			// If this is a perfect fit sideways, choose it.
-			else if (height == freeRectangles.get(i).width && width == freeRectangles.get(i).height)
+			else if (height == iw && width == ih)
 			{
-				bestNode.x = freeRectangles.get(i).x;
-				bestNode.y = freeRectangles.get(i).y;
-				bestNode.width = height;
-				bestNode.height = width;
+				bestNode = new Rect(ix, iy, height, width);
 				bestScore = Integer.MIN_VALUE;
 				nodeIndex.val = i;
 				// [NOT PORTED] debug_assert(disjointRects.disjoint(bestNode));
 				break;
 			}
 			// Does the rectangle fit upright?
-			else if (width <= freeRectangles.get(i).width && height <= freeRectangles.get(i).height)
+			else if (width <= iw && height <= ih)
 			{
 				float score = ScoreByHeuristic(width, height, freeRectangles.get(i), rectChoice);
 
 				if (score < bestScore)
 				{
-					bestNode.x = freeRectangles.get(i).x;
-					bestNode.y = freeRectangles.get(i).y;
-					bestNode.width = width;
-					bestNode.height = height;
+					bestNode = new Rect(ix, iy, width, height);
 					bestScore = score;
 					nodeIndex.val = i;
 					// [NOT PORTED] debug_assert(disjointRects.disjoint(bestNode));
 				}
 			}
 			// Does the rectangle fit sideways?
-			else if (height <= freeRectangles.get(i).width && width <= freeRectangles.get(i).height)
+			else if (height <= iw && width <= ih)
 			{
 				float score = ScoreByHeuristic(height, width, freeRectangles.get(i), rectChoice);
 
 				if (score < bestScore)
 				{
-					bestNode.x = freeRectangles.get(i).x;
-					bestNode.y = freeRectangles.get(i).y;
-					bestNode.width = height;
-					bestNode.height = width;
+					bestNode = new Rect(ix, iy, height, width);
 					bestScore = score;
 					nodeIndex.val = i;
 					// [NOT PORTED] debug_assert(disjointRects.disjoint(bestNode));
@@ -517,19 +520,19 @@ public class GuillotineBinPack {
 	 * score values, smaller is better.
 	 */
 	static float ScoreBestAreaFit(float width, float height, Rect freeRect) {
-		return freeRect.width * freeRect.height - width * height;
+		return freeRect.width() * freeRect.height() - width * height;
 	}
 	
 	static float ScoreBestShortSideFit(float width, float height, Rect freeRect) {
-		float leftoverHoriz = Helper.abs(freeRect.width - width);
-		float leftoverVert = Helper.abs(freeRect.height - height);
+		float leftoverHoriz = Helper.abs(freeRect.width() - width);
+		float leftoverVert = Helper.abs(freeRect.height() - height);
 		float leftover = Helper.min(leftoverHoriz, leftoverVert);
 		return leftover;
 	}
 	
 	static float ScoreBestLongSideFit(float width, float height, Rect freeRect) {
-		float leftoverHoriz = Helper.abs(freeRect.width - width);
-		float leftoverVert = Helper.abs(freeRect.height - height);
+		float leftoverHoriz = Helper.abs(freeRect.width() - width);
+		float leftoverVert = Helper.abs(freeRect.height() - height);
 		float leftover = Helper.max(leftoverHoriz, leftoverVert);
 		return leftover;
 	}
@@ -558,8 +561,8 @@ public class GuillotineBinPack {
 	// void SplitFreeRectByHeuristic(const Rect &freeRect, const Rect &placedRect, GuillotineSplitHeuristic method);
 	void splitFreeRectByHeuristic(Rect freeRect, Rect placedRect, GuillotineSplitHeuristic method) {
 		// Compute the lengths of the leftover area.
-		float w = freeRect.width - placedRect.width;
-		float h = freeRect.height - placedRect.height;
+		float w = freeRect.width() - placedRect.width();
+		float h = freeRect.height() - placedRect.height();
 
 		// Placing placedRect into freeRect results in an L-shaped free area, which must be split into
 		// two disjoint rectangles. This can be achieved with by splitting the L-shape using a single line.
@@ -581,20 +584,20 @@ public class GuillotineBinPack {
 			case SplitMinimizeArea:
 				// Maximize the larger area == minimize the smaller area.
 				// Tries to make the single bigger rectangle.
-				splitHorizontal = (placedRect.width * h > w * placedRect.height);
+				splitHorizontal = (placedRect.width() * h > w * placedRect.height());
 				break;
 			case SplitMaximizeArea:
 				// Maximize the smaller area == minimize the larger area.
 				// Tries to make the rectangles more even-sized.
-				splitHorizontal = (placedRect.width * h <= w * placedRect.height);
+				splitHorizontal = (placedRect.width() * h <= w * placedRect.height());
 				break;
 			case SplitShorterAxis:
 				// Split along the shorter total axis.
-				splitHorizontal = (freeRect.width <= freeRect.height);
+				splitHorizontal = (freeRect.width() <= freeRect.height());
 				break;
 			case SplitLongerAxis:
 				// Split along the longer total axis.
-				splitHorizontal = (freeRect.width > freeRect.height);
+				splitHorizontal = (freeRect.width() > freeRect.height());
 				break;
 			default:
 				splitHorizontal = true;
@@ -619,31 +622,44 @@ public class GuillotineBinPack {
 	// void splitFreeRectAlongAxis(const Rect &freeRect, const Rect &placedRect, bool splitHorizontal);
 	void splitFreeRectAlongAxis(Rect freeRect, Rect placedRect, boolean splitHorizontal) {
 		// Form the two new rectangles.
-		Rect bottom = new Rect();
-		bottom.x = freeRect.x;
-		bottom.y = freeRect.y + placedRect.height;
-		bottom.height = freeRect.height - placedRect.height;
-
-		Rect right = new Rect();
-		right.x = freeRect.x + placedRect.width;
-		right.y = freeRect.y;
-		right.width = freeRect.width - placedRect.width;
+		Rect bottom;
+		Rect right;
 
 		if (splitHorizontal)
 		{
-			bottom.width = freeRect.width;
-			right.height = placedRect.height;
+			bottom = new Rect(
+					freeRect.x(),
+					freeRect.y() + placedRect.height(),
+					freeRect.width(),
+					freeRect.height() - placedRect.height()
+					);
+			right = new Rect(
+					freeRect.x() + placedRect.width(),
+					freeRect.y(),
+					freeRect.width() - placedRect.width(),
+					placedRect.height()
+					);
 		}
 		else // Split vertically
 		{
-			bottom.width = placedRect.width;
-			right.height = freeRect.height;
+			bottom = new Rect(
+					freeRect.x(),
+					freeRect.y() + placedRect.height(),
+					placedRect.width(),
+					freeRect.height() - placedRect.height()
+					);
+			right = new Rect(
+					freeRect.x() + placedRect.width(),
+					freeRect.y(),
+					freeRect.width() - placedRect.width(),
+					freeRect.height()
+					);
 		}
 
 		// Add the new rectangles into the free rectangle pool if they weren't degenerate.
-		if (bottom.width > 0 && bottom.height > 0)
+		if (bottom.width() > 0 && bottom.height() > 0)
 			freeRectangles.add(bottom);
-		if (right.width > 0 && right.height > 0)
+		if (right.width() > 0 && right.height() > 0)
 			freeRectangles.add(right);
 
 		// [NOT PORTED]debug_assert(disjointRects.disjoint(bottom));

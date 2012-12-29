@@ -10,22 +10,13 @@ public class Rect {
 	};
 	*/
 	
-	private float x;
-	private float y;
-	private float width;
-	private float height;
-
-	public Rect(float x, float y, float width, float height) {
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-	}
-
-	public Rect(float width, float height) {
-		x = y = -1;
-		this.width = width;
-		this.height = height;
+	public float x;
+	public float y;
+	public float width;
+	public float height;
+	
+	public Rect() {
+		x = y = width = height = 0;
 	}
 
 	public Rect(Rect n) {
@@ -46,22 +37,6 @@ public class Rect {
 		return a.x >= b.x && a.y >= b.y 
 				&& a.x+a.width <= b.x+b.width 
 				&& a.y+a.height <= b.y+b.height;	
-	}
-
-	public float height() {
-		return height;
-	}
-
-	public float width() {
-		return width;
-	}
-
-	public float x() {
-		return x;
-	}
-
-	public float y() {
-		return y;
 	}
 
 }

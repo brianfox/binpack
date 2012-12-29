@@ -38,8 +38,8 @@ public class BinPackCL {
 			Rect packedRect = bin.Insert(rectWidth, rectHeight, heuristic);
 
 			// Test success or failure.
-			if (packedRect.height() > 0)
-				System.out.printf("Packed to (x,y)=(%d,%d), (w,h)=(%d,%d). Free space left: %.2f%%\n", packedRect.x(), packedRect.y(), packedRect.width(), packedRect.height(), 100.f - bin.Occupancy()*100.f);
+			if (packedRect.height > 0)
+				System.out.printf("Packed to (x,y)=(%d,%d), (w,h)=(%d,%d). Free space left: %.2f%%\n", packedRect.x, packedRect.y, packedRect.width, packedRect.height, 100.f - bin.Occupancy()*100.f);
 			else
 				System.out.printf("Failed! Could not find a proper position to pack this rectangle into. Skipping this one.\n");
 		}

@@ -48,13 +48,13 @@ public class SpeedTest {
 
 			// Test success or failure.
 			if (output) 
-				if (packedRect.height() > 0)
+				if (packedRect.height > 0)
 					System.out.printf(
 							"Packed to (x,y)=(%d,%d), (w,h)=(%d,%d). Free space left: %.2f%%\n", 
-							packedRect.x(), 
-							packedRect.y(), 
-							packedRect.width(), 
-							packedRect.height(), 
+							packedRect.x, 
+							packedRect.y, 
+							packedRect.width, 
+							packedRect.height, 
 							100.f - bin.Occupancy()*100.f
 					);
 				else

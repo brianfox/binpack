@@ -12,9 +12,9 @@ public class BinPack<T> {
 	ArrayList<Bin<T>> objects;
 	Guillotine binpack;
 	
-	public BinPack() {
+	public BinPack(float binWidth, float binHeight) {
 		this.objects = new ArrayList<Bin<T>>();
-		this.binpack = new Guillotine();
+		this.binpack = new Guillotine(binWidth, binHeight);
 	}
 
 	public void addObject(Bin<T> object) {

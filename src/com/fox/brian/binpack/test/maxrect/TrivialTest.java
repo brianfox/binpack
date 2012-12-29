@@ -82,13 +82,13 @@ public class TrivialTest {
 
 			// Test success or failure.
 			if (output) 
-				if (packedRect.height() > 0)
+				if (packedRect.height > 0)
 					System.out.printf(
 							"Packed to (x,y)=(%.2f,%.2f), (w,h)=(%.2f,%.2f). Free space left: %.2f%%\n", 
-							packedRect.x(), 
-							packedRect.y(), 
-							packedRect.width(), 
-							packedRect.height(), 
+							packedRect.x, 
+							packedRect.y, 
+							packedRect.width, 
+							packedRect.height, 
 							100.f - bin.Occupancy()*100.f
 					);
 				else

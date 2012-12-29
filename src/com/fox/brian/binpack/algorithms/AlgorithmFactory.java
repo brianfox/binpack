@@ -9,7 +9,6 @@ import com.fox.brian.binpack.algorithms.Guillotine.FreeRectChoiceHeuristic;
 import com.fox.brian.binpack.algorithms.Guillotine.GuillotineSplitHeuristic;
 import com.fox.brian.binpack.util.Rect;
 
-
 public class AlgorithmFactory<T> {
 
 	public class AlgorithmParameters implements Comparable<AlgorithmParameters> {
@@ -86,13 +85,10 @@ public class AlgorithmFactory<T> {
 			float rectHeight = b.getHeight();
 			// Perform the packing.
 			Rect packedRect = container.insert(rectWidth, rectHeight, p.merge, p.rectChoice, p.splitChoice);
-			if (mandatoryfit && (packedRect.x() < 0 || packedRect.y() < 0))
+			if (mandatoryfit && (packedRect.x < 0 || packedRect.y < 0))
 				return null;
-			System.out.printf("Bin:  Loc=(%.2f, %.2f) H,W=%.2f,%.2f %s\n", packedRect.x(), packedRect.y(), b.getWidth(), b.getHeight(), b.toSummary());
-			b.setLocation(packedRect.x(), packedRect.y());
-			if (packedRect.x() == 0 && packedRect.y() == 0) {
-				System.out.println("Packed at origin");
-			}
+			System.out.printf("Bin:  Loc=(%.2f, %.2f) H,W=%.2f,%.2f %s\n", packedRect.x, packedRect.y, b.getWidth(), b.getHeight(), b.toSummary());
+			b.setLocation(packedRect.x, packedRect.y);
 		}
 
 		return container;
@@ -172,15 +168,15 @@ public class AlgorithmFactory<T> {
 
 			// Perform the packing.
 			Rect packedRect = container.insert(b.getWidth(), b.getHeight(), merge, heuristic, splitMethod);
-			if (mandatoryfit && (packedRect.x() < 0 || packedRect.y() < 0)) {
-				System.err.print(".");
+			if (mandatoryfit && (packedRect.x < 0 || packedRect.y < 0)) {
+				System.err.println("Could not pack rectangle");
 				return null;
 			}
 			if (b.getHeight() <= 0 || b.getWidth() <= 0) {
-				System.err.print(".");
+				System.err.println("Could not pack rectangle");
 				return null;
 			}
-			b.setLocation(packedRect.x(), packedRect.y());
+			b.setLocation(packedRect.x, packedRect.y);
 		}
 		return container;
 	}

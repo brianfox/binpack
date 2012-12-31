@@ -1,102 +1,78 @@
 package com.fox.brian.binpack.algorithms;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.fox.brian.binpack.Bin;
-import com.fox.brian.binpack.algorithms.Guillotine.FreeRectChoiceHeuristic;
-import com.fox.brian.binpack.algorithms.Guillotine.GuillotineSplitHeuristic;
+import com.fox.brian.binpack.algorithms.GuillotineContainer.FreeRectChoiceHeuristic;
+import com.fox.brian.binpack.algorithms.GuillotineContainer.GuillotineSplitHeuristic;
 import com.fox.brian.binpack.util.Rect;
 
 public class AlgorithmFactory<T> {
 
-	public class AlgorithmParameters implements Comparable<AlgorithmParameters> {
+	public class AlgorithmParameters {
 		
-		float occupancy;
 		float height;
 		float width;
-		float area;
+		boolean mandatoryFit;
 
-		public AlgorithmParameters(float occupancy, float width, float height) {
-			this.occupancy = occupancy;
+		public AlgorithmParameters(float width, float height, boolean mandatoryfit) {
 			this.width = width;
 			this.height = height;
-			area = width * height;
+			this.mandatoryFit = mandatoryfit;
 		}
 
 		@Override
-		public int compareTo(AlgorithmParameters a) {
-			if (this.area > a.area)
-				return 1;
-			if (this.area < a.area)
-				return -1;
-			return 0;
-		}
-		
-		@Override
 		public String toString() {
-			return String.format("H: %.2f W: %.2f A: %.2f", height,width,area);
+			return String.format("H: %.2f W: %.2f A: %.2f", height,width);
 		}
 	}
 	
 	public class GuillotineParameters extends AlgorithmParameters {
 
-		Guillotine.FreeRectChoiceHeuristic rectChoice;
-		Guillotine.GuillotineSplitHeuristic splitChoice;
+		GuillotineContainer.FreeRectChoiceHeuristic rectChoice;
+		GuillotineContainer.GuillotineSplitHeuristic splitChoice;
 		boolean merge;
+		public boolean mandatoryfit;
 
 		public GuillotineParameters(
-				float occupancy, 
 				float width, 
 				float height,
 				FreeRectChoiceHeuristic h, 
 				GuillotineSplitHeuristic s,
-				boolean merge
+				boolean merge,
+				boolean mandatoryfit
 		) {
-			super(occupancy, width, height);
+			super(width, height, mandatoryfit);
 			this.rectChoice = h;
 			this.splitChoice = s;
 		}
 		
 		@Override
 		public String toString() {
-			return String.format("Occupancy: %.2f W: %.2f H: %.2f   RectH: %s SplitH: %s  M: %s ", occupancy, width, height, rectChoice, splitChoice, merge);
+			StringBuilder sb = new StringBuilder();
+			// todo
+			return sb.toString();
 		}
 	}
 	
-	public Guillotine bestGuillotinePack(
+	public ArrayList<Bin<T>> bestGuillotinePack(
 			ArrayList<Bin<T>> bins, 
 			boolean mandatoryfit
 			) {
 		
 		if (bins == null || bins.size() == 0)
-			return null;
-		GuillotineParameters p = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
-		Guillotine container = new Guillotine(p.width, p.height);
-
-		System.out.printf("Best Parameters: %s\n", p);
-		// Pack each rectangle (w_i, h_i) the user inputted on the command line.
-		for(Bin<T> b : bins)
-		{
-			b.reset();
-			// Read next rectangle to pack.
-			float rectWidth = b.getWidth();
-			float rectHeight = b.getHeight();
-			// Perform the packing.
-			Rect packedRect = container.insert(rectWidth, rectHeight, p.merge, p.rectChoice, p.splitChoice);
-			if (mandatoryfit && (packedRect.x < 0 || packedRect.y < 0))
-				return null;
-			System.out.printf("Bin:  Loc=(%.2f, %.2f) H,W=%.2f,%.2f %s\n", packedRect.x, packedRect.y, b.getWidth(), b.getHeight(), b.toSummary());
-			b.setLocation(packedRect.x, packedRect.y);
-		}
-
-		return container;
+			return new ArrayList<Bin<T>>();
+		GuillotineContainer<T> container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
+		System.out.printf("%s\n", container);
+		return container.bins;
 	}
 
 	
 	
-	private GuillotineParameters bestScoreGuillotineSlidingDimensions(ArrayList<Bin<T>> bins, boolean mandatoryfit) {
+	private GuillotineContainer<T> bestScoreGuillotineSlidingDimensions(ArrayList<Bin<T>> bins, boolean mandatoryfit) {
 		
 		// This calculation is so cheap that we can bin pack with brute force in
 		// regards to guillotine algorithm parameters and bin size.
@@ -116,67 +92,59 @@ public class AlgorithmFactory<T> {
 		// Run through every possible rectangle, scoring the algorithm
 		// and making note of the parameters
 		
-		TreeSet<GuillotineParameters> potentials = new TreeSet<GuillotineParameters>();
+		GuillotineContainer<T> best = null;
 		
-		for (float len1 = sqlen; len1 < 10 * sqlen; len1 += len1 * 0.5) {
+		// GuillotineContainer gc = new GuillotineContainer();
+		for (float len1 = sqlen; len1 < 100 * sqlen; len1 += len1 * 0.5) {
 			for (float len2 = sqlen; len2 < 10 * sqlen; len2 += len2 * 0.5) {
-				GuillotineParameters best = bestScoreGuillotineFixedDimensions(bins, len1, len2, mandatoryfit);
-				if (best != null) {
-					potentials.add(best);
-				}
+				GuillotineContainer<T> next = bestScoreGuillotineFixedDimensions(bins, len1, len2, mandatoryfit);
+				if (next == null)
+					continue;
+				if (best == null) 
+					best = next;
+				if (next.score() > best.score())
+					best = next;
+				
 			}
 		}
-		return potentials.isEmpty() ? null : potentials.first();
+		return best;
 	}
 
 	
-	private GuillotineParameters bestScoreGuillotineFixedDimensions(ArrayList<Bin<T>> bins, float width, float height, boolean mandatoryfit) {
+	private GuillotineContainer<T> bestScoreGuillotineFixedDimensions(ArrayList<Bin<T>> bins, float width, float height, boolean mandatoryfit) {
 		
-		TreeSet<GuillotineParameters> attempts = new TreeSet<GuillotineParameters>();
+		GuillotineContainer<T> best = null;
 		
-		for ( Guillotine.FreeRectChoiceHeuristic h :  Guillotine.FreeRectChoiceHeuristic.values()) {
-			for ( Guillotine.GuillotineSplitHeuristic s :  Guillotine.GuillotineSplitHeuristic.values()) {
+		for ( GuillotineContainer.FreeRectChoiceHeuristic h :  GuillotineContainer.FreeRectChoiceHeuristic.values()) {
+			for ( GuillotineContainer.GuillotineSplitHeuristic s :  GuillotineContainer.GuillotineSplitHeuristic.values()) {
 				for ( boolean merge : new boolean[]{true,false} ) {				
-					
-					Guillotine g = pack(width, height, bins, h, s, merge, mandatoryfit);	
-					if (g != null)
-						attempts.add(new GuillotineParameters(g.occupancy(), width, height, h, s, merge));
+					GuillotineParameters p = new GuillotineParameters(width, height, h, s, merge, mandatoryfit);
+					GuillotineContainer<T> next = guillotineSolution(p, bins);
+					if (next == null)
+						continue;
+					if (best == null) 
+						best = next;
+					if (next.score() > best.score())
+						best = next;
 				}
 			}
 		}
-		// System.out.println("FixedDimensions: " + attempts.size());
-		return attempts.isEmpty() ? null : attempts.first();
+		return best;
 	}
 	
 	
-	private Guillotine pack(
-			float binWidth, 
-			float binHeight, 
-			ArrayList<Bin<T>> bins, 
-			Guillotine.FreeRectChoiceHeuristic heuristic, 
-			Guillotine.GuillotineSplitHeuristic splitMethod,
-			boolean merge,
-			boolean mandatoryfit
-			) {
+	private GuillotineContainer<T> guillotineSolution(GuillotineParameters parms, List<Bin<T>> bins) {
 		
-		Guillotine container = new Guillotine(binWidth, binHeight);
+		GuillotineContainer<T> container = new GuillotineContainer<T>(parms.width, parms.height);
 
 		// Pack each rectangle (w_i, h_i) the user inputted on the command line.
 		for(Bin<T> b : bins)
 		{
-			b.reset();
-
 			// Perform the packing.
-			Rect packedRect = container.insert(b.getWidth(), b.getHeight(), merge, heuristic, splitMethod);
-			if (mandatoryfit && (packedRect.x < 0 || packedRect.y < 0)) {
-				System.err.println("Could not pack rectangle");
-				return null;
+			Rect packedRect = container.insert(b, parms.merge, parms.rectChoice, parms.splitChoice);
+			if (parms.mandatoryfit && (packedRect.x() < 0 || packedRect.y() < 0)) {
+				throw new RuntimeException("Could not pack rectangle");
 			}
-			if (b.getHeight() <= 0 || b.getWidth() <= 0) {
-				System.err.println("Could not pack rectangle");
-				return null;
-			}
-			b.setLocation(packedRect.x, packedRect.y);
 		}
 		return container;
 	}

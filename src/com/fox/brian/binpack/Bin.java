@@ -1,7 +1,5 @@
 package com.fox.brian.binpack;
 
-import com.fox.brian.binpack.util.Rect;
-
 public class Bin<T> {
 
 	private T object;
@@ -19,7 +17,25 @@ public class Bin<T> {
 		this.y = -1;
 		this.summary = summary;
 	}
-	
+
+	public Bin(Bin<T> src, float newx, float newy) {
+		this.object = src.object;
+		this.height = src.height;
+		this.width = src.width;
+		this.x = newx;
+		this.y = newy;
+		this.summary = src.summary;
+	}
+
+	public Bin(Bin<T> src) {
+		this.object = src.object;
+		this.height = src.height;
+		this.width = src.width;
+		this.x = src.x;
+		this.y = src.y;
+		this.summary = src.summary;
+	}
+
 	public float getX() {
 		return x;
 	}
@@ -40,27 +56,8 @@ public class Bin<T> {
 		return object;
 	}
 
-	public void setX1(float x) {
-		this.x = x;
-	}
-
-
-	public void setY2(float y) {
-		this.y = y;
-	}
-
-	public void setLocation(float x, float y) {
-		this.x = x;
-		this.y = y;
-	}
-	
 	public Object toSummary() {
 		return summary;
-	}
-
-	public void reset() {
-		this.x = this.y = 0;
-		
 	}
 
 }

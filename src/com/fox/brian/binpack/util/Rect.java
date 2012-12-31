@@ -1,19 +1,11 @@
 package com.fox.brian.binpack.util;
 
-public class Rect {
+public final class Rect {
 
-	/*
-	class RectSize
-	{
-		int width;
-		int height;
-	};
-	*/
-	
-	public float x;
-	public float y;
-	public float width;
-	public float height;
+	private float x;
+	private float y;
+	private float width;
+	private float height;
 	
 	public Rect() {
 		x = y = width = height = 0;
@@ -25,7 +17,19 @@ public class Rect {
 		this.width = n.width;
 		this.height = n.height;
 	}
+	
+	public Rect(float x, float y, float width, float height) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
 
+	
+	public float x() { return x; }
+	public float y() { return y; }
+	public float height() { return height; }
+	public float width() { return width; }
 	
 	/**
 	 * Returns true if a is contained in b.

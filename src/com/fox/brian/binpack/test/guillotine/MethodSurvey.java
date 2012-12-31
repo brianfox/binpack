@@ -2,7 +2,7 @@ package com.fox.brian.binpack.test.guillotine;
 
 import org.junit.Test;
 
-import com.fox.brian.binpack.algorithms.Guillotine;
+import com.fox.brian.binpack.algorithms.GuillotineContainer;
 
 public class MethodSurvey extends AbstractTest {
 
@@ -10,8 +10,8 @@ public class MethodSurvey extends AbstractTest {
 	@Test
 	public void incrementalTest() {
 
-		for ( Guillotine.FreeRectChoiceHeuristic h :  Guillotine.FreeRectChoiceHeuristic.values()) {
-			for ( Guillotine.GuillotineSplitHeuristic s :  Guillotine.GuillotineSplitHeuristic.values()) {
+		for ( GuillotineContainer.FreeRectChoiceHeuristic h :  GuillotineContainer.FreeRectChoiceHeuristic.values()) {
+			for ( GuillotineContainer.GuillotineSplitHeuristic s :  GuillotineContainer.GuillotineSplitHeuristic.values()) {
 				float[] vals = new float[100];
 				for (int i = 0; i < 100; i++) 
 					vals[i] = i;

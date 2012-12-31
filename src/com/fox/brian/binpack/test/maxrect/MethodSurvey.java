@@ -2,7 +2,7 @@ package com.fox.brian.binpack.test.maxrect;
 
 import org.junit.Test;
 
-import com.fox.brian.binpack.algorithms.MaxRects;
+import com.fox.brian.binpack.algorithms.MaxRectsContainer;
 
 public class MethodSurvey extends AbstractTest {
 
@@ -10,7 +10,7 @@ public class MethodSurvey extends AbstractTest {
 	@Test
 	public void incrementalTest() {
 
-		for ( MaxRects.FreeRectChoiceHeuristic h :  MaxRects.FreeRectChoiceHeuristic.values()) {
+		for ( MaxRectsContainer.FreeRectChoiceHeuristic h :  MaxRectsContainer.FreeRectChoiceHeuristic.values()) {
 			int[] vals = new int[100];
 			for (int i = 0; i < 100; i++) 
 				vals[i] = i;

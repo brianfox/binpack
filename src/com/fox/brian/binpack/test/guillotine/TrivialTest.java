@@ -2,7 +2,7 @@ package com.fox.brian.binpack.test.guillotine;
 
 import org.junit.Test;
 
-import com.fox.brian.binpack.algorithms.Guillotine;
+import com.fox.brian.binpack.algorithms.GuillotineContainer;
 
 public class TrivialTest extends AbstractTest {
 
@@ -15,8 +15,8 @@ public class TrivialTest extends AbstractTest {
 				256.0F, 
 				256.0F, 
 				vals, 
-				Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-				Guillotine.GuillotineSplitHeuristic.SplitLongerAxis,
+				GuillotineContainer.FreeRectChoiceHeuristic.RectBestShortSideFit, 
+				GuillotineContainer.GuillotineSplitHeuristic.SplitLongerAxis,
 				true
 				);
 	}
@@ -31,8 +31,8 @@ public class TrivialTest extends AbstractTest {
 				256.0F, 
 				256.0F, 
 				vals, 
-				Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-				Guillotine.GuillotineSplitHeuristic.SplitLongerAxis,
+				GuillotineContainer.FreeRectChoiceHeuristic.RectBestShortSideFit, 
+				GuillotineContainer.GuillotineSplitHeuristic.SplitLongerAxis,
 				true
 				);
 	}
@@ -48,8 +48,8 @@ public class TrivialTest extends AbstractTest {
 				256.0F, 
 				256.0F, 
 				vals, 
-				Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-				Guillotine.GuillotineSplitHeuristic.SplitLongerAxis,
+				GuillotineContainer.FreeRectChoiceHeuristic.RectBestShortSideFit, 
+				GuillotineContainer.GuillotineSplitHeuristic.SplitLongerAxis,
 				true
 				);	
 	}
@@ -65,8 +65,8 @@ public class TrivialTest extends AbstractTest {
 			256.0F, 
 			256.0F, 
 			vals, 
-			Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-			Guillotine.GuillotineSplitHeuristic.SplitLongerAxis,
+			GuillotineContainer.FreeRectChoiceHeuristic.RectBestShortSideFit, 
+			GuillotineContainer.GuillotineSplitHeuristic.SplitLongerAxis,
 			true
 			);	
 	}
@@ -82,8 +82,8 @@ public class TrivialTest extends AbstractTest {
 				256.0F, 
 				256.0F, 
 				vals, 
-				Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-				Guillotine.GuillotineSplitHeuristic.SplitLongerAxis,
+				GuillotineContainer.FreeRectChoiceHeuristic.RectBestShortSideFit, 
+				GuillotineContainer.GuillotineSplitHeuristic.SplitLongerAxis,
 				true
 				);	
 		

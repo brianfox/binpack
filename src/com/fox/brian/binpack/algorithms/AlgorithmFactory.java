@@ -58,6 +58,43 @@ public class AlgorithmFactory<T> {
 		}
 	}
 	
+	public GuillotineContainer<T> smallestSquareGuillotine(ArrayList<Bin<T>> bins, boolean mandatoryfit) {
+		// Start with an educated guess on minimum bin packing area.  
+		// That equals a square that can perfectly capture all bins.
+		
+		float area = 0;
+		for (Bin<T> b : bins) {
+			area += b.getHeight() * b.getWidth();
+		}
+		float lower = (float) Math.sqrt(area);
+		
+		// Find a container that actually works by exponentially 
+		// increasing the container area.
+		
+		float upper = lower;
+		while (true) {
+			GuillotineContainer<T> container = bestScoreGuillotineFixedDimensions(bins, upper, upper, true);
+			if (!container.hasOverflow())
+				break;
+			upper = upper * upper;
+		}
+		
+		float lastWorking = upper;
+		// Do a binary search to figure out best length
+		while ((upper / lower) > 1.05) {
+			float nextlen = (upper + lower)/2;
+			GuillotineContainer<T> container = bestScoreGuillotineFixedDimensions(bins, nextlen, nextlen, true);
+			if (container.hasOverflow())
+				lower = nextlen;
+			else {
+				upper = nextlen;
+				lastWorking = upper;
+			}
+		}
+		return bestScoreGuillotineFixedDimensions(bins, lastWorking, lastWorking, true);
+
+	}
+	
 	public ArrayList<Bin<T>> bestGuillotinePack(
 			ArrayList<Bin<T>> bins, 
 			boolean mandatoryfit
@@ -66,6 +103,7 @@ public class AlgorithmFactory<T> {
 		if (bins == null || bins.size() == 0)
 			return new ArrayList<Bin<T>>();
 		GuillotineContainer<T> container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
+		container = smallestSquareGuillotine(bins, mandatoryfit);
 		System.out.printf("%s\n", container);
 		return container.bins;
 	}

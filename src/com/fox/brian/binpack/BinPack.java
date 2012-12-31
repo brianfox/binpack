@@ -1,20 +1,18 @@
 package com.fox.brian.binpack;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.fox.brian.binpack.algorithms.AlgorithmFactory;
-import com.fox.brian.binpack.algorithms.Guillotine;
-import com.fox.brian.binpack.util.Rect;
+import com.fox.brian.binpack.algorithms.GuillotineContainer;
 
 public class BinPack<T> {
 
 	ArrayList<Bin<T>> objects;
-	Guillotine binpack;
+	GuillotineContainer<T> binpack;
 	
 	public BinPack(float binWidth, float binHeight) {
 		this.objects = new ArrayList<Bin<T>>();
-		this.binpack = new Guillotine(binWidth, binHeight);
+		this.binpack = new GuillotineContainer<T>(binWidth, binHeight);
 	}
 
 	public void addObject(Bin<T> object) {
@@ -29,32 +27,10 @@ public class BinPack<T> {
 	
 	public ArrayList<Bin<T>> pack(boolean mandatoryfit) {
 		AlgorithmFactory<T> f = new AlgorithmFactory<T>();
-		f.bestGuillotinePack(objects, mandatoryfit);
-		return objects;
+		return f.bestGuillotinePack(objects, mandatoryfit);
 	}
 	
 	
-	/*
-	public ArrayList<Bin<T>> pack2() {
-		for (Bin<T> b : objects) {
-			b.reset();
-			Rect packedRect = binpack.insert(b.rect.width, b.rect.height, true, 
-					Guillotine.FreeRectChoiceHeuristic.RectBestShortSideFit, 
-					Guillotine.GuillotineSplitHeuristic.SplitLongerAxis
-					);
-			if (packedRect.height > 0) {
-				b.rect.x = packedRect.x;
-				b.rect.y = packedRect.y;
-			}
-			else {
-				b.rect.x = -1;
-				b.rect.y = -1;
-			}
-		}
-		return objects;
-	}
-	*/
-
 	public int size() {
 		return objects.size();
 	}

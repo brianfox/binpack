@@ -102,9 +102,9 @@ public class AlgorithmFactory<T> {
 		
 		if (bins == null || bins.size() == 0)
 			return new ArrayList<Bin<T>>();
-		GuillotineContainer<T> container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
+		GuillotineContainer<T> // container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
 		container = smallestSquareGuillotine(bins, mandatoryfit);
-		System.out.printf("%s\n", container);
+		// System.out.printf("%s\n", container);
 		return container.bins;
 	}
 

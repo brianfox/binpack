@@ -2,9 +2,8 @@ package com.fox.brian.binpack.algorithms;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
+import com.fox.brian.binpack.util.Helper;
 import com.fox.brian.binpack.Bin;
 import com.fox.brian.binpack.algorithms.GuillotineContainer.FreeRectChoiceHeuristic;
 import com.fox.brian.binpack.algorithms.GuillotineContainer.GuillotineSplitHeuristic;
@@ -64,7 +63,16 @@ public class AlgorithmFactory<T> {
 		
 		float area = 0;
 		for (Bin<T> b : bins) {
-			area += b.getHeight() * b.getWidth();
+			float x = b.getHeight() * b.getWidth();
+			area += x;
+
+			assert !Float.isNaN(x) : "Bin doesn't have a valid area: " + b;
+		}
+		Helper.getGenericLogger().finest(String.format("Trying to pack %d bins with an area of %.2f", bins.size(), area));
+		if (Float.isNaN(area)) {
+			Helper.getGenericLogger().finest(String.format("    - Area is NaN...  How'd that happen?  Here are the bins' widths and heights:", bins.size(), area));
+			for (Bin<T> b : bins)
+				Helper.getGenericLogger().finest(String.format("    %.2f %.2f ... %s\n", b.getWidth(), b.getHeight(), b.toSummary()));
 		}
 		float lower = (float) Math.sqrt(area);
 		
@@ -72,14 +80,19 @@ public class AlgorithmFactory<T> {
 		// increasing the container area.
 		
 		float upper = lower;
-		while (true) {
-			GuillotineContainer<T> container = bestScoreGuillotineFixedDimensions(bins, upper, upper, true);
-			if (!container.hasOverflow())
-				break;
-			upper = upper * upper;
-		}
+		Helper.getGenericLogger().finest(String.format("    - Found lower: %.2f", lower));
+		Helper.getGenericLogger().finest(String.format("    - Searching for upper: "));
+		if (upper > 0)
+			while (true) {
+				GuillotineContainer<T> container = bestScoreGuillotineFixedDimensions(bins, upper, upper, true);
+				if (!container.hasOverflow())
+					break;
+				upper += upper;
+			}
+		Helper.getGenericLogger().finest(String.format("    - Done. Found upper: %.2f\n", upper));
 		
 		float lastWorking = upper;
+		Helper.getGenericLogger().finest(String.format("    - Searching for ideal: "));
 		// Do a binary search to figure out best length
 		while ((upper / lower) > 1.05) {
 			float nextlen = (upper + lower)/2;
@@ -91,6 +104,7 @@ public class AlgorithmFactory<T> {
 				lastWorking = upper;
 			}
 		}
+		Helper.getGenericLogger().finest(String.format("    - Done.  Found ideal: %.2f\n", lastWorking));
 		return bestScoreGuillotineFixedDimensions(bins, lastWorking, lastWorking, true);
 
 	}
@@ -104,7 +118,6 @@ public class AlgorithmFactory<T> {
 			return new ArrayList<Bin<T>>();
 		GuillotineContainer<T> // container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
 		container = smallestSquareGuillotine(bins, mandatoryfit);
-		// System.out.printf("%s\n", container);
 		return container.bins;
 	}
 

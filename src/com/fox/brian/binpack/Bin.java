@@ -10,6 +10,8 @@ public class Bin<T> {
 	private String summary;
 	
 	public Bin(T object, float width, float height, String summary) {
+		if (Float.isNaN(width) || Float.isNaN(height))
+			System.err.println("Bad constructor call on Bin (1)");
 		this.object = object;
 		this.height = height;
 		this.width = width;
@@ -19,6 +21,8 @@ public class Bin<T> {
 	}
 
 	public Bin(Bin<T> src, float newx, float newy) {
+		if (Float.isNaN(width) || Float.isNaN(height))
+			System.err.println("Bad constructor call on Bin (2)");
 		this.object = src.object;
 		this.height = src.height;
 		this.width = src.width;
@@ -28,6 +32,8 @@ public class Bin<T> {
 	}
 
 	public Bin(Bin<T> src) {
+		if (Float.isNaN(width) || Float.isNaN(height))
+			System.err.println("Bad constructor call on Bin (3)");
 		this.object = src.object;
 		this.height = src.height;
 		this.width = src.width;

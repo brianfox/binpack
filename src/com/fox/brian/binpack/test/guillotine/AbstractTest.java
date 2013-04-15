@@ -22,7 +22,7 @@ public class AbstractTest {
 		// Create a bin to pack to, use the bin size from command line.
 		if (output) 
 			System.out.printf("Initializing bin to size %.2fx%.2f.\n", binWidth, binHeight);
-		GuillotineContainer<Integer> bin = new GuillotineContainer<Integer>(binWidth, binHeight);
+		GuillotineContainer<Integer> bin = new GuillotineContainer<Integer>(binWidth, binHeight, 0, 0); // FIXME
 
 		// Pack each rectangle (w_i, h_i) the user inputted on the command line.
 		for(int i = 0; i < vals.length; i += 2)

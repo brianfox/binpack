@@ -116,8 +116,9 @@ public class AlgorithmFactory<T> {
 		
 		if (bins == null || bins.size() == 0)
 			return new ArrayList<Bin<T>>();
-		GuillotineContainer<T> // container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
-		container = smallestSquareGuillotine(bins, mandatoryfit);
+		GuillotineContainer<T> container;
+		container = bestScoreGuillotineSlidingDimensions(bins, mandatoryfit);
+		//container = smallestSquareGuillotine(bins, mandatoryfit);
 		return container.bins;
 	}
 
@@ -144,10 +145,35 @@ public class AlgorithmFactory<T> {
 		// and making note of the parameters
 		
 		GuillotineContainer<T> best = null;
+
+		GuillotineContainer<T> bestHorizontal = null;
+		GuillotineContainer<T> bestVertical = null;
 		
-		// GuillotineContainer gc = new GuillotineContainer();
+		float vert = 15.0F;
+		float horz = 15.0F;
+		
+		while (vert > 0.1) {
+			GuillotineContainer<T> next = bestScoreGuillotineFixedDimensions(bins, vert * sqlen, 100 * sqlen, mandatoryfit);
+			vert -= 0.05;
+			if (next == null)
+				continue;
+			if (bestVertical == null) 
+				bestVertical = next;
+			if (next.score() > bestVertical.score())
+				bestVertical = next;
+		}
+		while (horz > 0.1) {
+			GuillotineContainer<T> next = bestScoreGuillotineFixedDimensions(bins, 100 * sqlen, horz * sqlen, mandatoryfit);
+			horz -= 0.05;
+			if (next == null)
+				continue;
+			if (bestHorizontal == null) 
+				bestHorizontal = next;
+			if (next.score() > bestHorizontal.score())
+				bestHorizontal = next;
+		}
 		for (float len1 = sqlen; len1 < 100 * sqlen; len1 += len1 * 0.5) {
-			for (float len2 = sqlen; len2 < 10 * sqlen; len2 += len2 * 0.5) {
+			for (float len2 = sqlen; len2 < 100 * sqlen; len2 += len2 * 0.5) {
 				GuillotineContainer<T> next = bestScoreGuillotineFixedDimensions(bins, len1, len2, mandatoryfit);
 				if (next == null)
 					continue;
@@ -158,6 +184,19 @@ public class AlgorithmFactory<T> {
 				
 			}
 		}
+		System.out.printf("H: %12.2f %12.2f (%2.0f%%)        V: %12.2f %12.2f (%2.0f%%)       B: %12.2f %12.2f (%2.0f%%)\n", 
+				bestHorizontal.binWidth,
+				bestHorizontal.binHeight,
+				bestHorizontal.score() * 100,
+				bestVertical.binWidth,
+				bestVertical.binHeight,
+				bestVertical.score() * 100,
+				best.binWidth,
+				best.binHeight,
+				bestVertical.score() * 100
+				);
+		if (bestHorizontal.score() > best.score())
+			best = bestHorizontal;
 		return best;
 	}
 
@@ -186,7 +225,7 @@ public class AlgorithmFactory<T> {
 	
 	private GuillotineContainer<T> guillotineSolution(GuillotineParameters parms, List<Bin<T>> bins) {
 		
-		GuillotineContainer<T> container = new GuillotineContainer<T>(parms.width, parms.height);
+		GuillotineContainer<T> container = new GuillotineContainer<T>(parms.width, parms.height, 0, 0);  // FIXME
 
 		// Pack each rectangle (w_i, h_i) the user inputted on the command line.
 		for(Bin<T> b : bins)

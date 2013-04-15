@@ -15,9 +15,9 @@ public class BinPack<T> {
 		this.binpack = new GuillotineContainer<T>();
 	}
 
-	public BinPack(float binWidth, float binHeight) {
+	public BinPack(float maxWidth, float maxHeight, float minWidth, float minHeight) {
 		this.objects = new ArrayList<Bin<T>>();
-		this.binpack = new GuillotineContainer<T>(binWidth, binHeight);
+		this.binpack = new GuillotineContainer<T>(maxWidth, maxHeight, minWidth, minHeight);
 	}
 
 	public void addObject(Bin<T> object) {

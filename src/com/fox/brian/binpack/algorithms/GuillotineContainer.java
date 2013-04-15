@@ -41,11 +41,18 @@ public class GuillotineContainer<T> extends Container<T> {
 //		disjointRects = new DisjointRectCollection();
 	}
 	
-	public GuillotineContainer(float binWidth2, float binHeight2) {
+
+
+	public GuillotineContainer(
+			float maxWidth, 
+			float maxHeight, 
+			float minWidth,
+			float minHeight) {
+		
 		this();
 		
-		binWidth = binWidth2;
-		binHeight = binHeight2;
+		binWidth = maxWidth;
+		binHeight = maxHeight;
 
 		// [NOT PORTED]
 		// #ifdef _DEBUG
@@ -56,12 +63,11 @@ public class GuillotineContainer<T> extends Container<T> {
 		usedRectangles.clear();
 
 		// We start with a single big free rectangle that spans the whole bin.
-		Rect n = new Rect(0,0, binWidth2, binHeight2);
+		Rect n = new Rect(0,0, binWidth, binHeight);
 
 		freeRectangles.clear();
 		freeRectangles.add(n);
-
-		
+		// TODO Auto-generated constructor stub
 	}
 
 	/**

@@ -4,3 +4,4 @@
 .settings
 .svn/
 .DS_Store/
+bin/
